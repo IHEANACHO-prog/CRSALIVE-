@@ -1,11 +1,9 @@
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -15,29 +13,28 @@ export default async function handler(req, res) {
     const { system, user } = body;
 
     if (!system || !user) {
-      return res.status(400).json({ error: "Missing system or user prompt" });
+      return res.status(400).json({ error: "Missing prompts" });
     }
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-    const response = await fetch(GEMINI_URL, {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+      },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text: user }] }],
-        generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
       }),
     });
 
     const data = await response.json();
-
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message });
-    }
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Unable to generate content.";
+    const text = data.choices?.[0]?.message?.content || "Unable to generate content.";
     return res.status(200).json({ text });
 
   } catch (error) {
