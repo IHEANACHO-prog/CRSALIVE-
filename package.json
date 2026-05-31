@@ -1,8 +1,6 @@
-
 {
   "name": "crsalive",
   "version": "1.0.0",
-  "description": "AI-powered CRS Learning App for Nigerian SS1-SS3 Students",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,5 +16,3 @@
     "vite": "^5.4.0"
   }
 }
-```
-
